@@ -1,0 +1,83 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  #
+  # Project checks
+  #
+  project:
+    name: Project Checks (DCO, Headers, Vendor)
+    runs-on: ubuntu-18.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: '1.13.11'
+
+      - name: Set env
+        shell: bash
+        run: |
+          echo "::set-env name=GOPATH::${{ github.workspace }}"
+          echo "::add-path::${{ github.workspace }}/bin"
+
+      - name: Checkout project repo
+        uses: actions/checkout@v2
+        with:
+          repository: cri-tools/project
+          path: src/github.com/kubernetes-sigs/cri-tools
+
+      #
+      # Go get dependencies
+      #
+      - name: Install go get dependencies
+        env:
+          GO111MODULE: off
+        run: |
+          go get -u github.com/vbatts/git-validation
+          go get -u github.com/kunalkushwaha/ltag
+          go get -u github.com/LK4D4/vndr
+
+  #
+  # build, unit, integration, and CRI tests
+  #
+  linux-build-and-test:
+    name: Build, Unit, Integration, and CRI-TOOLS (linux amd64)
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: '1.13.11'
+
+      - name: Set env
+        shell: bash
+        run: |
+          echo "::set-env name=GOPATH::${{ github.workspace }}"
+          echo "::add-path::${{ github.workspace }}/bin"
+
+      - name: Checkout cri-tools repo
+        uses: actions/checkout@v2
+        with:
+          path: ${{github.workspace}}/src/github.com/kubernetes-sigs/cri-tools
+          fetch-depth: 150
+
+      - name: Before install
+        run: |
+          sudo sysctl net.ipv6.conf.all.disable_ipv6=0
+
+      - name: Install docker
+        run: |
+          hack/install-docker.sh
+        working-directory: ${{github.workspace}}/src/github.com/kubernetes-sigs/cri-tools
+
+      - name: Install kubelet
+        run: |
+          hack/install-kubelet.sh
+        working-directory: ${{github.workspace}}/src/github.com/kubernetes-sigs/cri-tools
+
+      - name: CRI Test
+        run: |
+          hack/run-critest.sh
+        working-directory: ${{github.workspace}}/src/github.com/containerd/cri
