@@ -6,7 +6,10 @@ jobs:
   # Run CRI tests against containerd (master)
   #
   linux-build-and-test-containerd:
-    name: critest - containerd (linux amd64)
+    strategy:
+      matrix:
+        version: [master, v1.4.0-beta.1]
+    name: critest - containerd ${{matrix.version}} (linux amd64)
     runs-on: ubuntu-18.04
     steps:
       - name: Install Go
@@ -19,12 +22,22 @@ jobs:
         run: |
           echo "::set-env name=GOPATH::${{ github.workspace }}"
           echo "::add-path::${{ github.workspace }}/bin"
+          echo "::set-env name=CONTD_CRI_REPO_REF::master"
 
-      - name: Checkout containerd/cri repo
+      # TODO: Get the SHA/Tag by extracting from
+      # https://github.com/containerd/containerd/blob/v1.4.0-beta.1/vendor.conf#L59
+      - name: Set latest containerd cri repo ref
+        shell: bash
+        if: ${{matrix.version == 'v1.4.0-beta.1'}}
+        run: |
+          echo "::set-env name=CONTD_CRI_REPO_REF::c744b66a3b655f140426f846cf64ef50ea8419c8"
+
+      - name: Checkout containerd/cri ${{matrix.version}}
         uses: actions/checkout@v2
         with:
           path: ${{ github.workspace }}/src/github.com/containerd/cri
           repository: containerd/cri
+          ref: ${{env.CONTD_CRI_REPO_REF}}
           fetch-depth: 150
 
       - name: disable ipv6
@@ -63,10 +76,10 @@ jobs:
           make test-cri
         working-directory: ${{ github.workspace }}/src/github.com/containerd/cri
 
-      - name: Upload containerd logs
+      - name: Upload containerd ${{matrix.version}} logs
         uses: actions/upload-artifact@v1
         with:
-          name: containerd-${{github.sha}}.log
+          name: containerd-${{matrix.version}}-${{github.sha}}.log
           path: /tmp/test-cri/containerd.log
 
   #
