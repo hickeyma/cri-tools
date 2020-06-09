@@ -1,4 +1,4 @@
-name: Containerd CI
+name: critest
 on: [push, pull_request]
 
 jobs:
@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         version: [master, v1.4.0-beta.1]
-    name: critest - containerd ${{matrix.version}} (linux amd64)
+    name: containerd ${{matrix.version}} / linux amd64
     runs-on: ubuntu-18.04
     steps:
       - name: Install Go
@@ -73,13 +73,13 @@ jobs:
           path: ${{github.workspace}}/src/github.com/kubernetes-sigs/cri-tools
           fetch-depth: 150
 
-      - name: Build this cri-tools
+      - name: Build cri-tools
         run: |
           make
           sudo make install
         working-directory: ${{ github.workspace }}/src/github.com/kubernetes-sigs/cri-tools
 
-      - name: CRI Test on this cri-tools commit
+      - name: Run critest
         run: |
           make test-cri
         working-directory: ${{ github.workspace }}/src/github.com/containerd/cri
