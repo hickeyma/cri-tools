@@ -49,6 +49,7 @@ CRI_TEST_PLATFORMS=(
 # Create releases output directory.
 PROJECT="github.com/kubernetes-sigs/cri-tools"
 CRI_TOOLS_ROOT="$GOPATH/src/$PROJECT"
+echo "tools root: ${CRI_TOOLS_ROOT}"
 mkdir -p ${CRI_TOOLS_ROOT}/_output/releases
 
 GO_LDFLAGS="-X ${PROJECT}/pkg/version.Version=${VERSION}"
