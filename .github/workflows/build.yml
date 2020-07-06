@@ -8,13 +8,13 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-18.04]  # TODO: pass linters on 'macos-10.15' 'windows-2019'
+        os: [ubuntu-18.04, macos-10.15]  # TODO: pass linters on 'windows-2019'
 
     steps:
       - name: Install Go
         uses: actions/setup-go@v1
         with:
-          go-version: '1.13.11'
+          go-version: '1.14'
 
       - name: Set env
         shell: bash
@@ -47,7 +47,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v1
         with:
-          go-version: '1.13.11'
+          go-version: '1.14'
 
       - name: Set env
         shell: bash
