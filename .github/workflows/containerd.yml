@@ -1,4 +1,4 @@
-name: critest containerd
+name: critest containerd test
 on: [push, pull_request]
 
 jobs:
